@@ -19,14 +19,25 @@ pipeline {
                 sh "jupyter-nbconvert --to python --stdout 'Long-term international migration 2.05 Occupation tidydata.ipynb' | ipython"
             }
         }
+        stage('RDF Data Cube') {
+            agent {
+                docker {
+                    image 'cloudfluff/table2qb'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh "table2qb exec cube-pipeline --input-csv out/tidydata2_5.csv --output-file out/observations.ttl --column-config metadata/columns.csv --dataset-name 'ONS LTIM Occupation' --base-uri http://gss-data.org.uk/ --dataset-slug ons-ltim-occupation"
+            }
+        }
         stage('Upload draftset') {
             steps {
                 script {
-                    def csvs = []
-                    for (def file : findFiles(glob: 'out/*.csv')) {
-                        csvs.add("out/${file.name}")
+                    def obslist = []
+                    for (def file : findFiles(glob: 'out/*.ttl')) {
+                        obslist.add("out/${file.name}")
                     }
-                    uploadDraftset('ONS-LTIM-Occupation', csvs)
+                    uploadCube('ONS LTIM Occupation', obslist)
                 }
             }
         }
