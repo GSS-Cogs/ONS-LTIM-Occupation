@@ -53,5 +53,8 @@ pipeline {
         always {
             archiveArtifacts 'out/*'
         }
+        success {
+            build job: '../GDP-tests', wait: false
+        }
     }
 }
