@@ -8,3 +8,4 @@ Count,count,qb:measure,http://gss-data.org.uk/def/measure/count,,number,
 Value,value,,http://gss-data.org.uk/def/measure/{measure_type},,number,
 CI,ci,qb:attribute,http://purl.org/linked-data/sdmx/2009/attribute#samplingErr,,string,
 Unit,unit,qb:attribute,http://purl.org/linked-data/sdmx/2009/attribute#unitMeasure,http://gss-data.org.uk/def/concept/measurement-units/{unit},string,unitize
+Revision,revision,qb:dimension,http://gss-data.org.uk/def/dimension/revision,http://gss-data.org.uk/def/concept/revisions/{revision},string,slugize
