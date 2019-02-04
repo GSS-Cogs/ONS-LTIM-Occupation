@@ -20,7 +20,7 @@ pipeline {
                 }
             }
             steps {
-                sh "jupyter-nbconvert --output-dir=out --ExecutePreprocessor.timeout=None --execute 'Long-term international migration 2.05 Occupation tidydata.ipynb'"
+                sh "jupyter-nbconvert --output-dir=out --ExecutePreprocessor.timeout=None --execute main.ipynb"
             }
         }
         stage('Test') {
@@ -41,12 +41,8 @@ pipeline {
         stage('Upload draftset') {
             steps {
                 script {
-                    def csvs = []
-                    for (def file : findFiles(glob: 'out/*.csv')) {
-                        csvs.add("out/${file.name}")
-                    }
                     jobDraft.replace()
-                    uploadTidy(csvs,
+                    uploadTidy(['out/observations.csv'],
                                'https://github.com/ONS-OpenData/ref_migration/raw/master/columns.csv')
                 }
             }
