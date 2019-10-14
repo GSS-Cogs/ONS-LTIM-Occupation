@@ -79,8 +79,8 @@ tidy.rename(columns={'OBS': 'Value'}, inplace=True)
 tidy['Marker'] = tidy['DATAMARKER'].map(lambda x: { ':' : 'not-available',
                                                 'Statistically Significant Decrease' : 'statistically-significant-decrease'}.get(x, x))
 
-tidy['CI'] = tidy['CI'].map(lambda x: { ':' : 'not-available',
-                                                'N/A' : 'not-available'}.get(x, x))
+tidy['CI'] = tidy['CI'].map(lambda x: { ':' : 'not-applicable',
+                                                'N/A' : 'not-applicable'}.get(x, x))
 
 tidy['Occupation'] = tidy['Occupation'].str.rstrip('1234')
 
