@@ -9,6 +9,10 @@
 
 from gssutils import *
 
+def left(s, amount):
+    return s[:amount]
+
+
 scraper = Scraper('https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/'                   'internationalmigration/datasets/longterminternationalmigrationusualoccupationpriortomigrationtable205')
 scraper
 
