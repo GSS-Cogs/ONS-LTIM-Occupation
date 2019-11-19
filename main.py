@@ -162,7 +162,7 @@ tidy = tidy[['Geography', 'Year', 'Occupation', 'Flow',
 # %%
 
 
-# tidy['Year'] = tidy['Year'].astype(int)
+tidy['Year'] = tidy['Year'].map(lambda x: left(x, len(x) - 2) if x.endswith('.0') else x)
 
 
 # %%
