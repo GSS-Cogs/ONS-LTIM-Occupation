@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
+# %%
 
 # Long-term international migration 2.05, Occupation
 
-# In[35]:
+# %%
 
 
 from gssutils import *
@@ -12,35 +13,36 @@ scraper = Scraper('https://www.ons.gov.uk/peoplepopulationandcommunity/populatio
 scraper
 
 
-# In[36]:
+# %%
 
 
 tab = next(t for t in scraper.distributions[0].as_databaker() if t.name == 'Table 2.05')
 
 
-# In[37]:
+# %%
 
 
 cell = tab.filter('Year')
 cell.assert_one()
 Occupation = cell.fill(RIGHT).is_not_blank().is_not_whitespace() 
-Year = cell.expand(DOWN).filter(lambda x: type(x.value) != str or 'Significant Change?' not in x.value)
+#Year = cell.expand(DOWN).filter(lambda x: type(x.value) != str or 'Significant Change?' not in x.value)
+Year = cell.shift(RIGHT).expand(DOWN).is_not_blank().is_not_whitespace().shift(LEFT).filter(lambda x: type(x.value) != str or 'Significant Change?' not in x.value)
 Geography = cell.fill(DOWN).one_of(['United Kingdom', 'England and Wales'])
 Flow = cell.fill(DOWN).one_of(['Inflow', 'Outflow', 'Balance'])
 
 
-# In[38]:
+# %%
 
-
-observations = cell.shift(RIGHT).fill(DOWN).filter('Estimate').expand(RIGHT).filter('Estimate')                 .fill(DOWN).is_not_blank().is_not_whitespace() 
+ssi = tab.filter('Statistically Significant Decrease')
+observations = cell.shift(RIGHT).fill(DOWN).filter('Estimate').expand(RIGHT).filter('Estimate').fill(DOWN).is_not_blank().is_not_whitespace() - ssi
 Str =  tab.filter(contains_string('Significant Change?')).fill(RIGHT).is_not_number()
 observations = observations - (tab.excel_ref('A1').expand(DOWN).expand(RIGHT).filter(contains_string('Significant Change')))
 original_estimates = tab.filter(contains_string('Original Estimates')).fill(DOWN).is_number()
 observations = observations - original_estimates - Str
-CI = observations.shift(RIGHT)
+CI = observations.shift(RIGHT).is_not_blank().is_not_whitespace() 
 
 
-# In[39]:
+# %%
 
 
 csObs = ConversionSegment(observations, [
@@ -53,11 +55,11 @@ csObs = ConversionSegment(observations, [
     HDim(CI,'CI',DIRECTLY,RIGHT),
     HDimConst('Revision', '2011 Census Revision')
 ])
-# savepreviewhtml(csObs)
+savepreviewhtml(csObs, fname="Preview.html")
 tidy_revised = csObs.topandas()
 
 
-# In[40]:
+# %%
 
 
 csRevs = ConversionSegment(original_estimates, [
@@ -73,13 +75,13 @@ csRevs = ConversionSegment(original_estimates, [
 orig_estimates = csRevs.topandas()
 
 
-# In[41]:
+# %%
 
 
 tidy = pd.concat([tidy_revised, orig_estimates], axis=0, join='outer', ignore_index=True, sort=False)
 
 
-# In[42]:
+# %%
 
 
 import numpy as np
@@ -92,27 +94,27 @@ tidy.rename(columns={'OBS': 'Value'}, inplace=True)
 # tidy['CI'] = tidy['CI'].map(lambda x:'' if x == ':' else int(x[:-2]) if x.endswith('.0') else 'ERR')
 
 
-# In[43]:
+# %%
 
 
-tidy['IPS Marker'] = tidy['DATAMARKER'].map(lambda x: { ':' : 'not-applicable',
-                                                'Statistically Significant Decrease' : 'statistically-significant-decrease'}.get(x, x))
+#tidy['IPS Marker'] = tidy['DATAMARKER'].map(lambda x: { ':' : 'not-applicable'
+                                                #'Statistically Significant Decrease' : 'statistically-significant-decrease'}.get(x, x))
 
 
-# In[44]:
+# %%
 
 
 tidy['CI'] = tidy['CI'].map(lambda x: { ':' : 'not-applicable',
                                                 'N/A' : 'not-applicable'}.get(x, x))
 
 
-# In[45]:
+# %%
 
 
 tidy['Occupation'] = tidy['Occupation'].str.rstrip('1234')
 
 
-# In[46]:
+# %%
 
 
 for col in tidy.columns:
@@ -122,7 +124,7 @@ for col in tidy.columns:
         display(tidy[col].cat.categories)
 
 
-# In[47]:
+# %%
 
 
 tidy['Geography'] = tidy['Geography'].cat.rename_categories({
@@ -144,23 +146,26 @@ tidy['Flow'] = tidy['Flow'].cat.rename_categories({
     'Outflow': 'outflow'
 })
 
+#tidy = tidy[['Geography', 'Year', 'Occupation', 'Flow',
+              #'Measure Type','Value', 'CI','Unit', 'Revision', 'IPS Marker']]
+
 tidy = tidy[['Geography', 'Year', 'Occupation', 'Flow',
-              'Measure Type','Value', 'CI','Unit', 'Revision', 'IPS Marker']]
+              'Measure Type','Value', 'CI','Unit', 'Revision']]
 
 
-# In[48]:
+# %%
 
 
 # tidy['Year'] = tidy['Year'].apply(lambda x: pd.to_numeric(x, downcast='integer'))
 
 
-# In[49]:
+# %%
 
 
 # tidy['Year'] = tidy['Year'].astype(int)
 
 
-# In[50]:
+# %%
 
 
 from pathlib import Path
@@ -170,7 +175,7 @@ destinationFolder.mkdir(exist_ok=True, parents=True)
 tidy.drop_duplicates().to_csv(destinationFolder / ('observations.csv'), index = False)
 
 
-# In[51]:
+# %%
 
 
 from gssutils.metadata import THEME
@@ -184,7 +189,7 @@ csvw = CSVWMetadata('https://gss-cogs.github.io/ref_migration/')
 csvw.create(destinationFolder / 'observations.csv', destinationFolder / 'observations.csv-schema.json')
 
 
-# In[ ]:
+# %%
 
 
 
